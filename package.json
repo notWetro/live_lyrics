@@ -1,0 +1,58 @@
+{
+  "name": "lyrics-display",
+  "version": "1.0.0",
+  "description": "Lyrics Display App für Songtext-Projektion",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "build:mac": "electron-builder --mac",
+    "build:win": "electron-builder --win",
+    "build:all": "electron-builder --mac --win",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["lyrics", "presentation", "worship"],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "build": {
+    "appId": "com.lyricsDisplay.app",
+    "productName": "Lyrics Display",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "!**/*.md",
+      "!dist",
+      "!node_modules"
+    ],
+    "mac": {
+      "category": "public.app-category.music",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "icon": "build/icon.icns"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "build/icon.ico"
+    }
+  },
+  "devDependencies": {
+    "electron": "^39.2.3",
+    "electron-builder": "^26.0.12"
+  }
+}
