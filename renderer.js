@@ -1,5 +1,6 @@
 const toggleBtn = document.getElementById('toggleBtn');
 const importBtn = document.getElementById('importBtn');
+const blackoutBtn = document.getElementById('blackoutBtn');
 const status = document.getElementById('status');
 const songList = document.getElementById('songList');
 const songCount = document.getElementById('songCount');
@@ -37,6 +38,11 @@ importBtn.addEventListener('click', async () => {
     songs = [...songs, ...importedSongs];
     renderSongList();
   }
+});
+
+// Blackout
+blackoutBtn.addEventListener('click', () => {
+  window.electronAPI.showVerse('');
 });
 
 // Render Song List
