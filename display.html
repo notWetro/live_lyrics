@@ -27,6 +27,20 @@
       white-space: pre-wrap;
       line-height: 1.4;
     }
+    
+    .preview {
+      opacity: 0.4;
+      font-style: italic;
+      font-size: 0.7em;
+      margin-top: 20px;
+      display: block;
+    }
+    
+    .song-title {
+      text-decoration: underline;
+      display: block;
+      margin-bottom: 15px;
+    }
   </style>
 </head>
 <body>
@@ -38,7 +52,20 @@
     const { ipcRenderer } = require('electron');
     
     ipcRenderer.on('update-verse', (event, verseText) => {
-      document.getElementById('lyrics').textContent = verseText;
+      const lyricsDiv = document.getElementById('lyrics');
+      
+      // Parse title and preview tags
+      let processedText = verseText.replace(
+        /<title>(.*?)<\/title>/g, 
+        '<span class="song-title">$1</span>'
+      );
+      
+      processedText = processedText.replace(
+        /<preview>(.*?)<\/preview>/g, 
+        '<span class="preview">$1</span>'
+      );
+      
+      lyricsDiv.innerHTML = processedText;
     });
   </script>
 </body>

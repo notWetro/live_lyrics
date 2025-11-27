@@ -227,7 +227,16 @@ function renderVerses() {
       // Füge Songtitel zur ersten Folie hinzu
       let displayText = verse.text;
       if (index === 0) {
-        displayText = song.title + '\n\n' + verse.text;
+        displayText = '<title>' + song.title + '</title>\n\n' + verse.text;
+      }
+      
+      // Füge Vorschau der nächsten Folie hinzu (erste Zeile)
+      if (index < song.verses.length - 1) {
+        const nextVerse = song.verses[index + 1];
+        const nextFirstLine = nextVerse.text.split('\n')[0];
+        if (nextFirstLine && nextFirstLine.trim()) {
+          displayText += '\n<preview>' + nextFirstLine + '</preview>';
+        }
       }
       
       window.electronAPI.showVerse(displayText);
