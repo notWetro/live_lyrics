@@ -96,19 +96,64 @@ ipcMain.handle('import-songs', async () => {
   for (const filePath of result.filePaths) {
     try {
       const content = await fs.readFile(filePath, 'utf-8');
-      const fileName = filePath.split('/').pop().replace(/\.(md|markdown)$/i, '');
+      const lines = content.split('\n');
       
-      // Teile Content in Verse auf (getrennt durch ---)
-      const verses = content
+      if (lines.length === 0) continue;
+      
+      // Erste Zeile ist der Titel
+      const title = lines[0].trim();
+      
+      // Finde den ersten "---" Separator
+      const separatorIndex = lines.findIndex(line => line.trim() === '---');
+      
+      if (separatorIndex === -1) {
+        console.error(`No separator found in ${filePath}`);
+        continue;
+      }
+      
+      // Zeilen 2 bis zum ersten "---" sind die Reihenfolge
+      const slideOrder = lines.slice(1, separatorIndex)
+        .map(line => line.trim())
+        .filter(line => line.length > 0);
+      
+      // Parse alle Folien nach dem ersten "---"
+      const slidesContent = lines.slice(separatorIndex + 1).join('\n');
+      const slideBlocks = slidesContent
         .split(/\n---\n/)
-        .map(verse => verse.trim())
-        .filter(verse => verse.length > 0);
+        .map(block => block.trim())
+        .filter(block => block.length > 0);
       
-      songs.push({
-        title: fileName,
-        verses: verses,
-        filePath: filePath
+      // Erstelle ein Map mit Foliennamen -> Folieninhalt
+      const slidesMap = {};
+      slideBlocks.forEach(block => {
+        const blockLines = block.split('\n');
+        if (blockLines.length > 0) {
+          const slideName = blockLines[0].trim();
+          const slideText = blockLines.slice(1).join('\n').trim();
+          slidesMap[slideName] = slideText;
+        }
       });
+      
+      // Erstelle die Verse-Liste in der richtigen Reihenfolge
+      const verses = [];
+      slideOrder.forEach(slideName => {
+        if (slidesMap[slideName]) {
+          verses.push({
+            name: slideName,
+            text: slidesMap[slideName]
+          });
+        } else {
+          console.warn(`Slide "${slideName}" referenced but not found in ${filePath}`);
+        }
+      });
+      
+      if (verses.length > 0) {
+        songs.push({
+          title: title,
+          verses: verses,
+          filePath: filePath
+        });
+      }
     } catch (error) {
       console.error(`Error reading file ${filePath}:`, error);
     }

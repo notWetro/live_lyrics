@@ -61,7 +61,7 @@ function renderSongList() {
     
     li.innerHTML = `
       <div class="song-title">${song.title}</div>
-      <div class="song-verses-count">${song.verses.length} Verse</div>
+      <div class="song-verses-count">${song.verses.length} Folien</div>
     `;
     
     // Click handler
@@ -216,14 +216,21 @@ function renderVerses() {
     }
     
     div.innerHTML = `
-      <div class="verse-number">Vers ${index + 1}</div>
-      <div class="verse-text">${verse}</div>
+      <div class="verse-number">${verse.name}</div>
+      <div class="verse-text">${verse.text}</div>
     `;
     
     div.addEventListener('click', () => {
       currentVerseIndex = index;
       renderVerses();
-      window.electronAPI.showVerse(verse);
+      
+      // Füge Songtitel zur ersten Folie hinzu
+      let displayText = verse.text;
+      if (index === 0) {
+        displayText = song.title + '\n\n' + verse.text;
+      }
+      
+      window.electronAPI.showVerse(displayText);
     });
     
     container.appendChild(div);
