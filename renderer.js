@@ -75,27 +75,63 @@ function renderSongList() {
     // Drag and Drop handlers
     li.addEventListener('dragstart', (e) => {
       draggedIndex = index;
-      li.style.opacity = '0.5';
+      li.classList.add('dragging');
     });
     
     li.addEventListener('dragend', (e) => {
-      li.style.opacity = '1';
+      li.classList.remove('dragging');
+      // Entferne alle Drop-Indikatoren
+      document.querySelectorAll('.song-item').forEach(item => {
+        item.classList.remove('drop-above', 'drop-below');
+      });
     });
     
     li.addEventListener('dragover', (e) => {
       e.preventDefault();
-      const afterElement = getDragAfterElement(songList, e.clientY);
-      if (afterElement == null) {
-        songList.appendChild(li);
+      if (draggedIndex === index) return;
+      
+      // Entferne alle Drop-Indikatoren
+      document.querySelectorAll('.song-item').forEach(item => {
+        item.classList.remove('drop-above', 'drop-below');
+      });
+      
+      // Bestimme ob oben oder unten
+      const rect = li.getBoundingClientRect();
+      const midpoint = rect.top + rect.height / 2;
+      
+      if (e.clientY < midpoint) {
+        li.classList.add('drop-above');
+      } else {
+        li.classList.add('drop-below');
+      }
+    });
+    
+    li.addEventListener('dragleave', (e) => {
+      // Nur entfernen wenn wir das Element wirklich verlassen
+      if (!li.contains(e.relatedTarget)) {
+        li.classList.remove('drop-above', 'drop-below');
       }
     });
     
     li.addEventListener('drop', (e) => {
       e.preventDefault();
+      li.classList.remove('drop-above', 'drop-below');
+      
       if (draggedIndex !== null && draggedIndex !== index) {
         const draggedSong = songs[draggedIndex];
         songs.splice(draggedIndex, 1);
-        const newIndex = draggedIndex < index ? index - 1 : index;
+        
+        // Bestimme neue Position basierend auf Drop-Zone
+        const rect = li.getBoundingClientRect();
+        const midpoint = rect.top + rect.height / 2;
+        let newIndex = index;
+        
+        if (draggedIndex < index) {
+          newIndex = e.clientY < midpoint ? index - 1 : index;
+        } else {
+          newIndex = e.clientY < midpoint ? index : index + 1;
+        }
+        
         songs.splice(newIndex, 0, draggedSong);
         
         // Update current song index if needed
@@ -248,3 +284,80 @@ function renderVerses() {
 
 // Initial render
 renderVerses();
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+  // B für Blackout
+  if (e.key === 'b' || e.key === 'B') {
+    window.electronAPI.showVerse('');
+    return;
+  }
+  
+  // Pfeiltasten links/rechts für Folien
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+    if (currentSongIndex === null) return;
+    
+    const song = songs[currentSongIndex];
+    if (!song) return;
+    
+    if (e.key === 'ArrowRight') {
+      // Nächste Folie
+      if (currentVerseIndex === null) {
+        currentVerseIndex = 0;
+      } else if (currentVerseIndex < song.verses.length - 1) {
+        currentVerseIndex++;
+      }
+    } else if (e.key === 'ArrowLeft') {
+      // Vorherige Folie
+      if (currentVerseIndex === null) {
+        currentVerseIndex = song.verses.length - 1;
+      } else if (currentVerseIndex > 0) {
+        currentVerseIndex--;
+      }
+    }
+    
+    renderVerses();
+    
+    // Zeige die Folie an
+    const verse = song.verses[currentVerseIndex];
+    let displayText = verse.text;
+    if (currentVerseIndex === 0) {
+      displayText = '<title>' + song.title + '</title>\n\n' + verse.text;
+    }
+    if (currentVerseIndex < song.verses.length - 1) {
+      const nextVerse = song.verses[currentVerseIndex + 1];
+      const nextFirstLine = nextVerse.text.split('\n')[0];
+      if (nextFirstLine && nextFirstLine.trim()) {
+        displayText += '\n<preview>' + nextFirstLine + '</preview>';
+      }
+    }
+    window.electronAPI.showVerse(displayText);
+    return;
+  }
+  
+  // Pfeiltasten oben/unten für Songs
+  if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+    if (songs.length === 0) return;
+    
+    if (e.key === 'ArrowDown') {
+      // Nächster Song
+      if (currentSongIndex === null) {
+        currentSongIndex = 0;
+      } else if (currentSongIndex < songs.length - 1) {
+        currentSongIndex++;
+      }
+    } else if (e.key === 'ArrowUp') {
+      // Vorheriger Song
+      if (currentSongIndex === null) {
+        currentSongIndex = songs.length - 1;
+      } else if (currentSongIndex > 0) {
+        currentSongIndex--;
+      }
+    }
+    
+    currentVerseIndex = null;
+    renderSongList();
+    renderVerses();
+    return;
+  }
+});
