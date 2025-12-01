@@ -1,8 +1,10 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, Menu } = require('electron');
 const path = require('path');
 
 let mainWindow;
 let displayWindow;
+let editorWindow;
+let editorSongContent = null;
 
 function createMainWindow() {
   mainWindow = new BrowserWindow({
@@ -17,6 +19,59 @@ function createMainWindow() {
 
   mainWindow.loadFile('index.html');
   mainWindow.webContents.openDevTools();
+  
+  // Create menu
+  const template = [
+    {
+      label: 'File',
+      submenu: [
+        {
+          label: 'New Song',
+          accelerator: 'CmdOrCtrl+N',
+          click: () => {
+            openSongEditor();
+          }
+        },
+        { type: 'separator' },
+        {
+          label: 'Quit',
+          accelerator: 'CmdOrCtrl+Q',
+          click: () => {
+            app.quit();
+          }
+        }
+      ]
+    }
+  ];
+  
+  const menu = Menu.buildFromTemplate(template);
+  Menu.setApplicationMenu(menu);
+}
+
+function openSongEditor(songContent = null) {
+  if (editorWindow) {
+    editorWindow.focus();
+    return;
+  }
+  
+  editorSongContent = songContent;
+  
+  editorWindow = new BrowserWindow({
+    width: 1200,
+    height: 800,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: false,
+      contextIsolation: true,
+    }
+  });
+  
+  editorWindow.loadFile('editor.html');
+  
+  editorWindow.on('closed', () => {
+    editorWindow = null;
+    editorSongContent = null;
+  });
 }
 
 function toggleDisplayWindow() {
@@ -165,5 +220,41 @@ ipcMain.handle('import-songs', async () => {
 ipcMain.handle('show-verse', (event, verseText) => {
   if (displayWindow) {
     displayWindow.webContents.send('update-verse', verseText);
+  }
+});
+
+ipcMain.handle('open-editor', (event, songContent) => {
+  openSongEditor(songContent);
+});
+
+ipcMain.handle('get-editor-content', () => {
+  return editorSongContent;
+});
+
+ipcMain.handle('save-song', async (event, content) => {
+  const result = await dialog.showSaveDialog(editorWindow, {
+    filters: [
+      { name: 'Markdown Files', extensions: ['md'] }
+    ],
+    defaultPath: 'song.md'
+  });
+  
+  if (!result.canceled) {
+    await fs.writeFile(result.filePath, content, 'utf-8');
+    
+    // Notify main window to reload the song
+    if (mainWindow) {
+      mainWindow.webContents.send('song-saved', result.filePath);
+    }
+    
+    if (editorWindow) {
+      editorWindow.close();
+    }
+  }
+});
+
+ipcMain.handle('close-editor', () => {
+  if (editorWindow) {
+    editorWindow.close();
   }
 });

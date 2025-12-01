@@ -188,6 +188,14 @@ function showContextMenu(x, y, index) {
   menu.style.left = `${x}px`;
   menu.style.top = `${y}px`;
   
+  const editOption = document.createElement('div');
+  editOption.className = 'context-menu-item';
+  editOption.innerHTML = '✏️ Edit';
+  editOption.addEventListener('click', () => {
+    editSong(index);
+    menu.remove();
+  });
+  
   const removeOption = document.createElement('div');
   removeOption.className = 'context-menu-item';
   removeOption.innerHTML = '🗑️ Entfernen';
@@ -196,6 +204,7 @@ function showContextMenu(x, y, index) {
     menu.remove();
   });
   
+  menu.appendChild(editOption);
   menu.appendChild(removeOption);
   document.body.appendChild(menu);
   
@@ -206,6 +215,30 @@ function showContextMenu(x, y, index) {
       document.removeEventListener('click', closeMenu);
     });
   }, 0);
+}
+
+function editSong(index) {
+  const song = songs[index];
+  
+  // Convert song back to markdown format
+  let markdown = song.title + '\n';
+  
+  // Add slide order
+  song.verses.forEach(verse => {
+    markdown += verse.name + '\n';
+  });
+  
+  markdown += '---\n';
+  
+  // Add slides
+  song.verses.forEach((verse, idx) => {
+    markdown += verse.name + '\n' + verse.text;
+    if (idx < song.verses.length - 1) {
+      markdown += '\n---\n';
+    }
+  });
+  
+  window.electronAPI.openEditor(markdown);
 }
 
 function removeSong(index) {
@@ -284,6 +317,23 @@ function renderVerses() {
 
 // Initial render
 renderVerses();
+
+// Listen for song saved event
+window.electronAPI.onSongSaved(async (filePath) => {
+  // Reload the saved song
+  const importedSongs = await window.electronAPI.importSongs();
+  if (importedSongs.length > 0) {
+    // Find and update existing song or add new one
+    const existingSongIndex = songs.findIndex(s => s.filePath === filePath);
+    if (existingSongIndex !== -1) {
+      songs[existingSongIndex] = importedSongs[0];
+    } else {
+      songs.push(importedSongs[0]);
+    }
+    renderSongList();
+    renderVerses();
+  }
+});
 
 // Keyboard shortcuts
 document.addEventListener('keydown', (e) => {
