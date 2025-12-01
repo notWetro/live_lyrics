@@ -1,4 +1,4 @@
-# Lyrics Display
+# Live Lyrics
 
 Eine Electron-App zur Anzeige von Songtexten auf einem zweiten Bildschirm, ähnlich wie SongBeamer oder ProPresenter.
 

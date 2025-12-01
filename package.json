@@ -1,7 +1,7 @@
 {
-  "name": "lyrics-display",
+  "name": "live-lyrics",
   "version": "1.0.0",
-  "description": "Lyrics Display App für Songtext-Projektion",
+  "description": "Live Lyrics App für Songtext-Projektion",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
@@ -16,8 +16,8 @@
   "license": "ISC",
   "type": "commonjs",
   "build": {
-    "appId": "com.lyricsDisplay.app",
-    "productName": "Lyrics Display",
+    "appId": "com.liveLyrics.app",
+    "productName": "Live Lyrics",
     "directories": {
       "output": "dist"
     },

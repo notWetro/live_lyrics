@@ -1,72 +1,70 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-  <meta charset="UTF-8">
-  <title>Lyrics Display</title>
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      background-color: #000;
-      color: white;
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      overflow: hidden;
-    }
-    
-    .lyrics {
-      text-align: center;
-      font-size: 72px;
-      font-weight: bold;
-      text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
-      padding: 40px;
-      max-width: 90%;
-      white-space: pre-wrap;
-      line-height: 1.4;
-    }
-    
-    .preview {
-      opacity: 0.4;
-      font-style: italic;
-      font-size: 0.7em;
-      margin-top: 20px;
-      display: block;
-    }
-    
-    .song-title {
-      text-decoration: underline;
-      display: block;
-      margin-bottom: 15px;
-    }
-  </style>
-</head>
-<body>
-  <div class="lyrics" id="lyrics">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Live Lyrics</title>
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+                background-color: #000;
+                color: white;
+                font-family: Arial, sans-serif;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                overflow: hidden;
+            }
 
-  </div>
-  
-  <script>
-    const { ipcRenderer } = require('electron');
-    
-    ipcRenderer.on('update-verse', (event, verseText) => {
-      const lyricsDiv = document.getElementById('lyrics');
-      
-      // Parse title and preview tags
-      let processedText = verseText.replace(
-        /<title>(.*?)<\/title>/g, 
-        '<span class="song-title">$1</span>'
-      );
-      
-      processedText = processedText.replace(
-        /<preview>(.*?)<\/preview>/g, 
-        '<span class="preview">$1</span>'
-      );
-      
-      lyricsDiv.innerHTML = processedText;
-    });
-  </script>
-</body>
+            .lyrics {
+                text-align: center;
+                font-size: 72px;
+                font-weight: bold;
+                text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
+                padding: 40px;
+                max-width: 90%;
+                white-space: pre-wrap;
+                line-height: 1.4;
+            }
+
+            .preview {
+                opacity: 0.7;
+                font-style: italic;
+                font-size: 0.9em;
+                margin-top: 20px;
+                display: block;
+            }
+
+            .song-title {
+                text-decoration: underline;
+                display: block;
+                margin-bottom: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="lyrics" id="lyrics"></div>
+
+        <script>
+            const { ipcRenderer } = require("electron");
+
+            ipcRenderer.on("update-verse", (event, verseText) => {
+                const lyricsDiv = document.getElementById("lyrics");
+
+                // Parse title and preview tags
+                let processedText = verseText.replace(
+                    /<title>(.*?)<\/title>/g,
+                    '<span class="song-title">$1</span>',
+                );
+
+                processedText = processedText.replace(
+                    /<preview>(.*?)<\/preview>/g,
+                    '<span class="preview">$1</span>',
+                );
+
+                lyricsDiv.innerHTML = processedText;
+            });
+        </script>
+    </body>
 </html>
